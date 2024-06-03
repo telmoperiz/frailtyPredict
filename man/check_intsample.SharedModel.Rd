@@ -2,7 +2,7 @@
 % Please edit documentation in R/SharedModel_methods.R
 \name{check_intsample.SharedModel}
 \alias{check_intsample.SharedModel}
-\title{Check whether there is sample for numerical integration}
+\title{Check whether there is Monte Carlo sample is stored. If not, it computes it.}
 \usage{
 \method{check_intsample}{SharedModel}(obj)
 }

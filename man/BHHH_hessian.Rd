@@ -2,7 +2,7 @@
 % Please edit documentation in R/SharedModel_generics.R
 \name{BHHH_hessian}
 \alias{BHHH_hessian}
-\title{BHHH Hessian computation}
+\title{Berndt–Hall–Hall–Hausman Hessian}
 \usage{
 BHHH_hessian(obj, ...)
 }

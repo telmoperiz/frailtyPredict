@@ -2,7 +2,7 @@
 % Please edit documentation in R/SharedModel_generics.R
 \name{check_intsample}
 \alias{check_intsample}
-\title{Check and compute numerical integral sample}
+\title{Check whether there is sample for numerical integration}
 \usage{
 check_intsample(obj)
 }

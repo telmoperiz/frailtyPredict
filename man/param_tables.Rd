@@ -2,7 +2,7 @@
 % Please edit documentation in R/SharedModel_generics.R
 \name{param_tables}
 \alias{param_tables}
-\title{Compute tables with parameter fits}
+\title{Parameter tables for printing and latex output}
 \usage{
 param_tables(obj, ...)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/SharedModel_generics.R
 \name{rec_boxplot}
 \alias{rec_boxplot}
-\title{Box plot for number of recurrent events}
+\title{Boxplot with number of recurrent events}
 \usage{
 rec_boxplot(obj, ...)
 }

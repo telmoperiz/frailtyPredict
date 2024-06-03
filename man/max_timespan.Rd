@@ -2,7 +2,7 @@
 % Please edit documentation in R/SharedModel_generics.R
 \name{max_timespan}
 \alias{max_timespan}
-\title{Largest follow-up time span}
+\title{Largest time observation in the sample}
 \usage{
 max_timespan(obj)
 }

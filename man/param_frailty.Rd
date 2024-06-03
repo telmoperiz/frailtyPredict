@@ -2,7 +2,7 @@
 % Please edit documentation in R/SharedModel_generics.R
 \name{param_frailty}
 \alias{param_frailty}
-\title{Frailty related parameters}
+\title{Parameters relative to the frailty term}
 \usage{
 param_frailty(obj)
 }

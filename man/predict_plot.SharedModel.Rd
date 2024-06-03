@@ -16,6 +16,7 @@
   numint_nodes = NULL,
   check_temp = FALSE,
   del_temp = TRUE,
+  render_plot = TRUE,
   ...
 )
 }
@@ -60,6 +61,8 @@ file with plot data. Default is \code{FALSE}. See details.}
 
 \item{del_temp}{\code{TRUE} (default) to delete the temporary JSON file with plot
 data.}
+
+\item{render_plot}{\code{TRUE} (default) to render plot using matplotlib.}
 
 \item{...}{Additional parameters to modify the plot's format.
 \itemize{

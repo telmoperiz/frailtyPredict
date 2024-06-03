@@ -2,7 +2,7 @@
 % Please edit documentation in R/SharedModel_generics.R
 \name{get_rec_number}
 \alias{get_rec_number}
-\title{Find number of recurrent events}
+\title{Number of recurrent events for each individual}
 \usage{
 get_rec_number(obj)
 }

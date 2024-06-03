@@ -2,7 +2,7 @@
 % Please edit documentation in R/SharedModel_generics.R
 \name{surv_given_history}
 \alias{surv_given_history}
-\title{Survival function given recurrent event history}
+\title{Survival function given history}
 \usage{
 surv_given_history(obj, ...)
 }

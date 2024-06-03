@@ -2,7 +2,7 @@
 % Please edit documentation in R/SharedModel_generics.R
 \name{param_coef}
 \alias{param_coef}
-\title{Covariate coefficients}
+\title{Coefficients of covariates}
 \usage{
 param_coef(obj)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/SharedModel_generics.R
 \name{Wald_test}
 \alias{Wald_test}
-\title{Perform Wald test}
+\title{Wald tests for the parameters of the model}
 \usage{
 Wald_test(obj, ...)
 }

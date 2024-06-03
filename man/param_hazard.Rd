@@ -2,7 +2,7 @@
 % Please edit documentation in R/SharedModel_generics.R
 \name{param_hazard}
 \alias{param_hazard}
-\title{Hazard function related parameters}
+\title{Parameters of the baseline hazards}
 \usage{
 param_hazard(obj)
 }

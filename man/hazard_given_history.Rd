@@ -2,7 +2,7 @@
 % Please edit documentation in R/SharedModel_generics.R
 \name{hazard_given_history}
 \alias{hazard_given_history}
-\title{Hazard function given recurrent event history}
+\title{Hazard given history}
 \usage{
 hazard_given_history(obj, ...)
 }

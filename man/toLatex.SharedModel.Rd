@@ -10,6 +10,7 @@
   cols = c("est", "hr", "pvals"),
   col_names = NULL,
   merged = TRUE,
+  digits = 3,
   horizontal = TRUE,
   append = FALSE,
   BHHH = TRUE
@@ -27,6 +28,8 @@
 
 \item{merged}{\code{TRUE} (default) to build a single table. \code{FALSE} creates
 separated tables for fit results.}
+
+\item{digits}{Digits to round results.}
 
 \item{horizontal}{\code{TRUE} (default) to order the results regarging the terminal
 and recurrent events horizontally.}

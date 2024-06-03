@@ -4,12 +4,12 @@
 \alias{dist_relevance_test.SharedModel}
 \title{Test relevance of recurrent event temporal distribution}
 \usage{
-\method{dist_relevance_test}{SharedModel}(obj, verbose = FALSE)
+\method{dist_relevance_test}{SharedModel}(obj, verbose = FALSE, BHHH = TRUE)
 }
 \arguments{
 \item{obj}{\code{\link[=SharedModel]{SharedModel()}} object}
 
-\item{verbose}{}
+\item{BHHH}{description}
 }
 \description{
 !!!!!! NEED TO DOCUMENT THIS.

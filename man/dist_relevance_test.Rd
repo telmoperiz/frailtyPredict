@@ -2,7 +2,7 @@
 % Please edit documentation in R/SharedModel_generics.R
 \name{dist_relevance_test}
 \alias{dist_relevance_test}
-\title{Test for relevance of the temporal distribution}
+\title{Test relevance of recurrent event temporal distribution}
 \usage{
 dist_relevance_test(obj, ...)
 }
