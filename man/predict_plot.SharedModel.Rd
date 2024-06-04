@@ -78,6 +78,7 @@ data.}
 \item \code{x_major_scale} = major time ticks are multiples of this number.
 \item \code{x_minor_scale} = minor time ticks are multiples of this number.
 \item \code{ci_alpha} = transparency of the confidence interval region.
+\item \code{dpi} = figure dots per inch.
 }}
 }
 \value{

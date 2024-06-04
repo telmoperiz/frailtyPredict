@@ -301,6 +301,7 @@ predict.SharedModel <- function(obj, t, w, covs, hist=NULL,
 #' * `x_major_scale` = major time ticks are multiples of this number.
 #' * `x_minor_scale` = minor time ticks are multiples of this number.
 #' * `ci_alpha` = transparency of the confidence interval region.
+#' * `dpi` = figure dots per inch.
 #'
 #' @return Silent. Crates a file with the plot in the specified path.
 #'

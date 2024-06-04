@@ -82,7 +82,8 @@ def shared_frailty_plot(infile, outfile, frmt_options={}):
                     'max_lgnd_cols': 4,
                     'sc_marker': 'x',
                     'pred_lim': None,
-                    'ci_alpha': 0.25
+                    'ci_alpha': 0.25,
+                    'dpi': 800
     }
     
     # Join the two dictionaries (second overwrites first)
@@ -193,7 +194,7 @@ def shared_frailty_plot(infile, outfile, frmt_options={}):
                    fontsize = FRMT['lgnd_fontsize'])
     
     #Save and close
-    fig.savefig(outfile)
+    fig.savefig(outfile, dpi=FRMT['dpi'])
     plt.close(fig)
 
     return True
