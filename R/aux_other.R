@@ -35,6 +35,27 @@ check_suggested_packages <- function(packages){
 #.............................................................................#
 #.............................................................................#
 
+# Find confidence intervals
+conf_intervals <- function(par, se, level = 0.95, HR=FALSE){
+
+  #Get the z value
+  z<-qnorm(1-(1-level)/2)
+
+  #Get the confidence interval
+  ci <- par + c(-1, 1) * z * se
+
+  #If HR, return the HR
+  if (HR){
+    ci<-exp(ci)
+  }
+
+  # Return as string
+  return(paste0('(', paste0(round(ci, 3), collapse = ', '), ')'))
+}
+
+#.............................................................................#
+#.............................................................................#
+
 # Get variable names from textable line
 get_line_variable <- function(line){
   varname <- strsplit(line, '&')[[1]][1]

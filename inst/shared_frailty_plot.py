@@ -91,7 +91,7 @@ def shared_frailty_plot(infile, outfile, frmt_options={}):
 
     # Extra margins
     REC_VER_MAR = 0.05 # For recurrent counter Y-axis
-    TEXT_HOR_MAR = -0.015 #-0.5 # For text (horizontal)
+    TEXT_HOR_MAR = -0.022 #-0.5 # For text (horizontal)
     TEXT_VER_MAR = -0.1 # For text (vertical)
                 
     # Load data
@@ -146,7 +146,7 @@ def shared_frailty_plot(infile, outfile, frmt_options={}):
     if FRMT['text_plot']:
         txt = ax_rec.text(PRED_POINT + TEXT_HOR_MAR * MAX_TIME,
                     TEXT_VER_MAR * MAX_REC,
-                    r'$t | \longleftrightarrow | t + w$',
+                    r'$T | \longleftrightarrow | T + w$',
                     usetex = True
                     )
 

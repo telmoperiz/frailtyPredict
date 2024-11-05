@@ -778,7 +778,7 @@ param_tables.SharedModel <- function(obj,
                                      BHHH=TRUE){
 
   # Check if valid columns
-  valid_cols <- c('est', 'est_SE', 'hr', 'hr_SE', 'pvals')
+  valid_cols <- c('est', 'est_SE', 'est_CI', 'hr', 'hr_SE', 'hr_CI', 'pvals')
   if (! all(cols %in% valid_cols)){
     stop(paste('Invalid columns. Select values from: ',
                paste(valid_cols, collapse = ' ')),
@@ -795,9 +795,6 @@ param_tables.SharedModel <- function(obj,
     stop('Invalid lenght for col_names', call. = FALSE)
   }
 
-  #Get parameter values in a list
-  params<-vector(mode="list", length=0) # initialize
-
   #Estimates
   parbeta<-param_coef(obj)
   parhaz<-param_hazard(obj)
@@ -812,53 +809,129 @@ param_tables.SharedModel <- function(obj,
     SE<-sqrt(diag(asymptvar(obj, BHHH=FALSE)))
   }
 
+  # Confidence intervals at 95%
+  alpha <- 0.95
+  est_CIs <- sapply(seq_along(obj$par), function(p)
+    conf_intervals(obj$par[p], SE[p], level = alpha, HR=FALSE)
+  )
 
   #z-test p values
   pvals<-sapply(seq_along(obj$par), function(p)
-    z_test(obj$par[p], SE[p],
-           one.sided = obj$optim_control$posit_cons[p])$pval)
+    z_test(obj$par[p], SE[p], one.sided = obj$optim_control$posit_cons[p])$pval
+  )
 
+  # HR Confidence intervals at 95%
+  alpha <- 0.95
+  hr_CIs <- sapply(seq_along(obj$par), function(p)
+    conf_intervals(obj$par[p], SE[p], level = alpha, HR=TRUE)
+  )
 
-  #Order them
-  params$beta_d$est<-unname(parbeta$terminal)
-  params$beta_d$est_SE<-SE[obj$par_pos$beta_d]
-  params$beta_d$pvals<-pvals[obj$par_pos$beta_d]
-  params$beta_d$names<-names(parbeta$terminal)
+  #Get parameter values in a list
+  params<-vector(mode="list", length=0) # initialize
 
-  params$beta_r$est<-unname(parbeta$recurrent)
-  params$beta_r$est_SE<-SE[obj$par_pos$beta_r]
-  params$beta_r$pvals<-pvals[obj$par_pos$beta_r]
-  params$beta_r$names<-names(parbeta$recurrent)
+  # Add them if asked for
+  if ('est' %in% cols){
+    params$beta_d$est<-unname(parbeta$terminal)
+    params$beta_r$est<-unname(parbeta$recurrent)
+    params$a_d$est<-unname(parhaz$terminal)
+    params$a_r$est<-unname(parhaz$recurrent)
+    params$frail$est<-unname(parfrail)
+  }
 
-  params$a_d$est<-unname(parhaz$terminal)
-  params$a_d$est_SE<-SE[obj$par_pos$a_d]
-  params$a_d$pvals<-pvals[obj$par_pos$a_d]
-  params$a_d$names<-names(parhaz$terminal)
+  if ('est_SE' %in% cols){
+    params$beta_d$est_SE<-SE[obj$par_pos$beta_d]
+    params$beta_r$est_SE<-SE[obj$par_pos$beta_r]
+    params$a_d$est_SE<-SE[obj$par_pos$a_d]
+    params$a_r$est_SE<-SE[obj$par_pos$a_r]
+    params$frail$est_SE<-SE[c(obj$par_pos$alpha, obj$par_pos$sig)]
+  }
 
-  params$a_r$est<-unname(parhaz$recurrent)
-  params$a_r$est_SE<-SE[obj$par_pos$a_r]
-  params$a_r$pvals<-pvals[obj$par_pos$a_r]
-  params$a_r$names<-names(parhaz$recurrent)
+  if ('est_CI' %in% cols){
+    params$beta_d$est_CI<-est_CIs[obj$par_pos$beta_d]
+    params$beta_r$est_CI<-est_CIs[obj$par_pos$beta_r]
+    params$a_d$est_CI<-est_CIs[obj$par_pos$a_d]
+    params$a_r$est_CI<-est_CIs[obj$par_pos$a_r]
+    params$frail$est_CI<-est_CIs[c(obj$par_pos$alpha, obj$par_pos$sig)]
+  }
 
-  params$frail$est<-unname(parfrail)
-  params$frail$est_SE<-SE[c(obj$par_pos$alpha, obj$par_pos$sig)]
-  params$frail$pvals<-pvals[c(obj$par_pos$alpha, obj$par_pos$sig)]
-  params$frail$names<-names(parfrail)
+  if ('pvals' %in% cols){
+    params$beta_d$pvals<-pvals[obj$par_pos$beta_d]
+    params$beta_r$pvals<-pvals[obj$par_pos$beta_r]
+    params$a_d$pvals<-pvals[obj$par_pos$a_d]
+    params$a_r$pvals<-pvals[obj$par_pos$a_r]
+    params$frail$pvals<-pvals[c(obj$par_pos$alpha, obj$par_pos$sig)]
+  }
 
-  # Add hazard ratios if needed
-  #if (HR){
+  if ('hr' %in% cols){
     params$beta_d$hr <- unname(exp(parbeta$terminal))
     params$beta_r$hr <- unname(exp(parbeta$recurrent))
     params$a_d$hr <- NA
     params$a_r$hr <- NA
     params$frail$hr <- NA
+  }
 
+  if ('hr_SE' %in% cols){
     params$beta_d$hr_SE<- params$beta_d$hr * params$beta_d$est_SE
     params$beta_r$hr_SE <- params$beta_r$hr * params$beta_r$est_SE
     params$a_d$hr_SE <- NA
     params$a_r$hr_SE <- NA
     params$frail$hr_SE <- NA
-  #}
+  }
+
+  if ('hr_CI' %in% cols){
+    params$beta_d$hr_CI<-hr_CIs[obj$par_pos$beta_d]
+    params$beta_r$hr_CI<-hr_CIs[obj$par_pos$beta_r]
+    params$a_d$hr_CI<-NA
+    params$a_r$hr_CI<-NA
+    params$frail$hr_CI<-NA
+  }
+
+  # Add names
+  params$beta_d$names<-names(parbeta$terminal)
+  params$beta_r$names<-names(parbeta$recurrent)
+  params$a_d$names<-names(parhaz$terminal)
+  params$a_r$names<-names(parhaz$recurrent)
+  params$frail$names<-names(parfrail)
+
+  # params$beta_d$est<-unname(parbeta$terminal)
+  # params$beta_d$est_SE<-SE[obj$par_pos$beta_d]
+  # params$beta_d$pvals<-pvals[obj$par_pos$beta_d]
+  # params$beta_d$names<-names(parbeta$terminal)
+  #
+  # params$beta_r$est<-unname(parbeta$recurrent)
+  # params$beta_r$est_SE<-SE[obj$par_pos$beta_r]
+  # params$beta_r$pvals<-pvals[obj$par_pos$beta_r]
+  # params$beta_r$names<-names(parbeta$recurrent)
+  #
+  # params$a_d$est<-unname(parhaz$terminal)
+  # params$a_d$est_SE<-SE[obj$par_pos$a_d]
+  # params$a_d$pvals<-pvals[obj$par_pos$a_d]
+  # params$a_d$names<-names(parhaz$terminal)
+  #
+  # params$a_r$est<-unname(parhaz$recurrent)
+  # params$a_r$est_SE<-SE[obj$par_pos$a_r]
+  # params$a_r$pvals<-pvals[obj$par_pos$a_r]
+  # params$a_r$names<-names(parhaz$recurrent)
+  #
+  # params$frail$est<-unname(parfrail)
+  # params$frail$est_SE<-SE[c(obj$par_pos$alpha, obj$par_pos$sig)]
+  # params$frail$pvals<-pvals[c(obj$par_pos$alpha, obj$par_pos$sig)]
+  # params$frail$names<-names(parfrail)
+  #
+  # # Add hazard ratios if needed
+  # #if (HR){
+  #   params$beta_d$hr <- unname(exp(parbeta$terminal))
+  #   params$beta_r$hr <- unname(exp(parbeta$recurrent))
+  #   params$a_d$hr <- NA
+  #   params$a_r$hr <- NA
+  #   params$frail$hr <- NA
+  #
+  #   params$beta_d$hr_SE<- params$beta_d$hr * params$beta_d$est_SE
+  #   params$beta_r$hr_SE <- params$beta_r$hr * params$beta_r$est_SE
+  #   params$a_d$hr_SE <- NA
+  #   params$a_r$hr_SE <- NA
+  #   params$frail$hr_SE <- NA
+  # #}
 
   #Create a table for each combination
   tables<-vector(mode="list", length = 0)
@@ -911,7 +984,7 @@ param_tables.SharedModel <- function(obj,
 #'
 #' @param obj [SharedModel()] object with fit results.
 #' @param cols character vector with values to display. A subset of
-#' `c('est', 'est_SE', 'hr', 'hr_SE', 'pvals')`.
+#' `c('est', 'est_SE', 'est_CI', 'hr', 'hr_SE', 'hr_CI', 'pvals')`.
 #' @param col_names Names of the columns.
 #' @param digits Digits to round results.
 #' @param BHHH `TRUE` to use Score based variance for computations. `FALSE` to
@@ -926,7 +999,8 @@ print.SharedModel <- function(obj, cols=c('est', 'hr', 'pvals'),
 
   # Default names
   default_col_names <- c(est = 'Estimate', hr = 'HR', pvals='P-value',
-                       est_SE = 'Estimate SE', hr_SE = 'HR SE')
+                       est_SE = 'Est. SE', hr_SE = 'HR SE',
+                       est_CI = 'Est. 95% CI', hr_CI = 'HR 95% CI')
   if (is.null(col_names)){
     col_names <- default_col_names[cols]
   }
@@ -1236,7 +1310,7 @@ surv_given_history.SharedModel<- function(obj, t, Tjs=NULL, gradient = FALSE){
 #' @param obj [SharedModel()] object
 #' @param filename Path where tables are saved
 #' @param cols character vector with values to display. A subset of
-#' `c('est', 'est_SE', 'hr', 'hr_SE', 'pvals')`.
+#' `c('est', 'est_SE', 'est_CI', 'hr', 'hr_SE', 'hr_CI', 'pvals')`.
 #' @param col_names Names of the columns.
 #' @param merged `TRUE` (default) to build a single table. `FALSE` creates
 #' separated tables for fit results.
@@ -1261,7 +1335,8 @@ toLatex.SharedModel <- function(obj, filename='tab.tex',
 
   # Default names
   default_col_names <- c(est = 'Estimate', hr = 'HR', pvals='P-value',
-                       est_SE = 'Estimate SE', hr_SE = 'HR SE')
+                       est_SE = 'Est. SE', hr_SE = 'HR SE',
+                       est_CI = 'Est. 95% CI', hr_CI = 'HR 95% CI')
   if (is.null(col_names)){
     col_names <- default_col_names[cols]
   }
