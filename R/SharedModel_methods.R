@@ -547,6 +547,51 @@ hazard_given_history.SharedModel<- function(obj, t, Tjs=NULL, gradient=FALSE){
     #Baseline survival is evaluated at gaps
     t_eval<-gaps
 
+  } else if (timescale=="piecewise-renewal"){
+    
+    # Poisson: piecewise-exponential
+    
+    # thresholds for pieces (add t=0)
+    taus <- c(0, obj$funtion_shapes$rec_piecewise_ts)
+    
+    # Constants (add C0 = 1 as first constant, normalized)
+    pw_C <- c(1, param_hazard(obj)$piecewise_Cs)
+    
+    #For each t, find the number of taus smaller than t (index for constant)
+    ind_C<-sapply(t, function(ti) sum(taus<ti))
+    
+    # Constants for each t
+    hazard_Consts <- pw_C[ind_C]
+    
+    # Renewal: user defined hazard
+    
+    #For each t, find the index of first Tjs that is smaller than t
+    ind_t<-sapply(t, function(ti) max(which(Tjs<ti)))
+    
+    #Find the gaps between t and the first Tjs smaller than it
+    gaps<-t-Tjs[ind_t]
+    
+    # Evaluate at gaps (renewal part)
+    h_ren <- base_hazard(obj, t=gaps, process = 'recurrent', gradient = gradient)
+    
+    # Hazard = Poisson * renewal
+    h <- hazard_Consts * h_ren
+    
+    # Computations for gradient
+    if (gradient){
+      
+      # Gradient wrt renewal part parameters
+      attr(h, 'gradient') <- hazard_Consts * attr(h_ren, 'gradient')
+      
+      # Gradient wrt Poisson part parameters (constants)
+      attr(h, 'grandient_C') <- sapply(seq(length(pw_C) - 1), function(col){
+        (ind_C == col + 1) * h_ren
+      })
+    }
+    
+    # Return piecewise-renewal hazard
+    return(h)
+    
   } else {
     stop('Incorrect definition of the recurrent event process.')
   }
@@ -740,16 +785,22 @@ param_hazard.SharedModel <- function(obj){
   #Get parameters for the terminal and recurrent events
   a_d<-obj$par[obj$par_pos$a_d]
   a_r<-obj$par[obj$par_pos$a_r]
+  pw_C<-obj$par[obj$par_pos$pw_C]
 
   #Get names depending on the method
   names_d<-do.call(paste(obj$funtion_shapes$hazard_d, 'names', sep = '_'), list())
   names_r<-do.call(paste(obj$funtion_shapes$hazard_r, 'names', sep = '_'), list())
-
+  names_C<-NULL
+  if(!is.null(obj$function_shapes$red_piecewise_ts)){
+    names_C<-paste('pw_C', obj$function_shapes$red_piecewise_ts, sep = '_')
+  }
+  
   #Set names
   names(a_d)<-names_d
   names(a_r)<-names_r
+  names(pw_C)<-names_C
 
-  return(list(terminal=a_d, recurrent=a_r))
+  return(list(terminal=a_d, recurrent=a_r, piecewise_Cs=pw_C))
 }
 
 #.............................................................................#
@@ -1293,6 +1344,10 @@ surv_given_history.SharedModel<- function(obj, t, Tjs=NULL, gradient = FALSE){
       attr(S, "gradient") <- S_grad
     }
 
+  } else if (timescale == 'piecewise-renewal'){
+    print('hi')
+    print('how')
+    
   } else {
     stop('Incorrect definition of the recurrent event process.')
   }

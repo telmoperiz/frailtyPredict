@@ -22,7 +22,10 @@ valid_posit_constraint <- function(par_pos, model_funs){
                                    list())
   posit_cons[par_pos$a_r]<-do.call(paste(model_funs$hazard_r, 'posit', sep = '_'),
                                    list())
-
+  
+  # Positivity constraint for piecewise Cs
+  posit_cons[par_pos$pw_C] <- TRUE
+  
   return(posit_cons)
 }
 

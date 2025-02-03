@@ -88,6 +88,7 @@
 #' @export
 shared_frailty_fit <- function(data, terminal_formula, recurrent_formula, obsvar,
                               ter_hazard, rec_hazard, rec_timescale, frailty,
+                              rec_piecewise_ts = NULL,
                               int_mode = "ISQMC", MC_N = 1e3, GC_nodes = 32,
                               is_control = list(dist='gamma', param=list(1, 1)),
                               anal.grad = TRUE, BHHH.hessian = FALSE,
@@ -110,9 +111,14 @@ shared_frailty_fit <- function(data, terminal_formula, recurrent_formula, obsvar
   }
 
   # Supported timescales
-  timescale_supp <- c('Poisson','renewal')
+  timescale_supp <- c('Poisson','renewal', 'piecewise-renewal')
   if (!(rec_timescale %in% timescale_supp)){
     stop(paste('Invalid timescale. Supported:', paste(timescale_supp, collapse = ', ')))
+  }
+  
+  # Check thresholds for piecewise-renewal
+  if(rec_timescale == 'piecewise-renewal' && is.null(rec_piecewise_ts)){
+    stop('Must provide rec_piecewise_ts (thresholds)')
   }
 
 
@@ -130,7 +136,7 @@ shared_frailty_fit <- function(data, terminal_formula, recurrent_formula, obsvar
     }
   }
 
-  # Parameter scale 'auto', 'none' or boolean
+  # Positivity constraint 'auto', 'none' or boolean
   if (!is.logical(positivity_cons)) {
     if (!positivity_cons %in% c('auto', 'none')){
       stop(paste('positivity_cons must be "auto", "none", or a logical vector'))
@@ -177,7 +183,8 @@ shared_frailty_fit <- function(data, terminal_formula, recurrent_formula, obsvar
                    hazard_r=paste("hazard", rec_hazard, sep = "_"),
                    surv_d=paste("surv", ter_hazard, sep = "_"),
                    surv_r=paste("surv", rec_hazard, sep = "_"),
-                   pdf=paste("pdf", frailty, sep = "_")
+                   pdf=paste("pdf", frailty, sep = "_"),
+                   rec_piecewise_ts=rec_piecewise_ts
                    )
 
   #Functions giving default parameters
@@ -273,13 +280,20 @@ shared_frailty_fit <- function(data, terminal_formula, recurrent_formula, obsvar
 
   beta_r<-defs_r$beta
   a_r<- defs_r$a
+  
+  # Piecewise Constants C1, C2, ...
+  if(rec_timescale == 'piecewise-renewal'){
+    pw_C <- rep(1, length(rec_piecewise_ts))
+  } else {
+    pw_C <- c()
+  }
 
   #Frailty term
   alpha <- 1
   sig <- do.call(pdf_defaults, list())
 
   #Initial guess
-  theta_ini<-c(alpha, sig, a_d, a_r, beta_d, beta_r)
+  theta_ini<-c(alpha, sig, a_d, a_r, beta_d, beta_r, pw_C)
 
   #Ordering of the parameters
   par_pos<-vector(mode='list', length = 0) #initialize
@@ -289,6 +303,7 @@ shared_frailty_fit <- function(data, terminal_formula, recurrent_formula, obsvar
   par_pos$a_r<-seq(utils::tail(par_pos$a_d, n=1)+1, length.out=length(a_r))
   par_pos$beta_d<-seq(utils::tail(par_pos$a_r, n=1)+1, length.out=length(beta_d))
   par_pos$beta_r<-seq(utils::tail(par_pos$beta_d, n=1)+1, length.out=length(beta_r))
+  par_pos$pw_C <- seq(utils::tail(par_pos$beta_r, n=1)+1, length.out=length(pw_C))
 
   ##### Positivity constraint and parameter scale #####
 

@@ -170,6 +170,7 @@ join_body_lines <- function(list1, list2){
 #.............................................................................#
 
 #Write the dataset in the coresponding time scale (gap or calendar)
+# Used to fit defaults in hazard_<...>_defaults
 modify_timescale <- function(OBSL, timescale){
 
   #If it is Poisson, just leave it unchanged
@@ -178,7 +179,7 @@ modify_timescale <- function(OBSL, timescale){
     rec_times_mod<-lapply(OBSL, function(obs) obs$rec_times)
 
     #If renewal, take the difference and turn it into a survival object
-  } else if (timescale == "renewal"){
+  } else if (timescale %in% c("renewal", "piecewise-renewal")){
 
     rec_times_mod<-lapply(OBSL, function(obs)
       survival::Surv(diff(c(0, times(obs$rec_times))),

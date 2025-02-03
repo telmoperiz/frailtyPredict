@@ -3,3 +3,9 @@ frailtyPredict.Rproj
 .Rhistory
 
 __pycache__/
+
+# Test files
+test.R
+
+# Data files
+new_data_extra.RData
