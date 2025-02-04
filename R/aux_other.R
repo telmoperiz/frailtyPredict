@@ -193,20 +193,162 @@ modify_timescale <- function(OBSL, timescale){
 #.............................................................................#
 #.............................................................................#
 
-# gradient for renewal model (used at surv_given_history.SharedModel)
-renewal_grad <- function(Sj, Sj_grad){
+# gradient for renewal model
+# (used at surv_given_history.SharedModel, rec_piece_Surv, rec_piece_weights)
+renewal_grad <- function(Sj, Sj_grad, weights = 1){
 
   # Multiply all the value of S for gap times
-  S <- prod(Sj)
+  S <- prod(Sj^weights)
 
   # For each gap, compute the derivative to value ratio
-  dv_ratio <- Sj_grad/replicate(n=ncol(Sj_grad), Sj)
+  dv_ratio <- weights * Sj_grad/replicate(n=ncol(Sj_grad), Sj)
 
   # Compute the sum across rows (ie., sum in gap times)
   dv_ratio_sum <- colSums(dv_ratio)
 
   # Multiply by the product across gap times
   grad <- S * dv_ratio_sum
+}
+
+#.............................................................................#
+#.............................................................................#
+
+# Index and exponent for each recurrent time
+# (used at rec_piece_Surv)
+rec_piece_exponent <- function(ts, model){
+
+  # Remove first time in ts, which corresponds to zero
+  ts <- ts[-1]
+
+  # Get piecewise times and constants
+  taus <- c(0, model$funtion_shapes$rec_piecewise_ts)
+  pw_C <- c(1, param_hazard(model)$piecewise_Cs)
+
+  ind_C <- sapply(ts, function(t) sum(taus < t))
+
+  # Remove the first
+  return(list(ind_C = ind_C, exp_C = pw_C[ind_C]))
+}
+
+#.............................................................................#
+#.............................................................................#
+
+# Compute Poisson (piecewise exponential) gap-time survivals
+# (used at surv_given_history.SharedModel)
+rec_piece_Surv <- function(ts, model, gradient = FALSE){
+
+  # Find the gaps between times
+  gaps <- diff(ts)
+
+  # Survival function at the gaps
+  Sb <- base_survival(gaps, obj=model, process = 'recurrent', gradient = gradient)
+
+  # Find Poisson part weights for each gap
+  weight <- rec_piece_weights(ts, model=model, gradient=gradient)
+
+  # Get exponents for each gap
+  expo <- rec_piece_exponent(ts, model=model)
+
+  # Find conditional survival for each t
+  Sjs <- weight * (Sb ^ expo$exp_C)
+
+  if (gradient){
+
+    # Get gradients
+    Sb_grad <- attr(Sb, 'gradient')
+    w_grad <- attr(weight, 'gradient')
+    w_grad_C <- attr(weight, 'gradient_C')
+
+    # Initialize
+    Sjs_grad <- matrix(0, nrow = length(Sjs), ncol = length(model$par_pos$a_r))
+    Sjs_grad_C <- matrix(0, nrow = length(Sjs), ncol = length(model$par_pos$pw_C))
+
+    for (j in seq_along(Sjs)){
+
+      # Gradient of product w.r.t. hazard parameters
+      Sjs_grad[j,] <- renewal_grad(c(weight[j], Sb[j]),
+                                   rbind(w_grad[j,], Sb_grad[j,]),
+                                   c(1, expo$exp_C[j])
+                                   )
+
+      # Gradient of product w.r.t. piecewise constants
+      w_deriv <- (Sb[j] ^ expo$exp_C[j]) * w_grad_C[j,]
+      Sb_deriv_ind <- seq(from = 2, to = ncol(Sjs_grad_C) + 1) == expo$ind_C[j]
+      Sjs_grad_C[j,] <-  w_deriv + weight[j] * log(Sb[j]) * Sb_deriv_ind
+    }
+
+    # Store
+    attr(Sjs, 'gradient') <- Sjs_grad
+    attr(Sjs, 'gradient_C') <- Sjs_grad_C
+  }
+
+  return(Sjs)
+}
+
+#.............................................................................#
+#.............................................................................#
+
+# Compute Poisson (piecewise exponential) weights for a given t
+# (used at rec_piece_Surv)
+rec_piece_weights <- function(ts, model, gradient = FALSE){
+
+  # Get piecewise times and constants
+  taus <- c(0, model$funtion_shapes$rec_piecewise_ts)
+  pw_C <- c(1, param_hazard(model)$piecewise_Cs)
+
+  ws <- numeric(length(ts) - 1)
+
+  if(gradient){
+    ws_grad <- matrix(0, nrow = length(ts) - 1, ncol = length(model$par_pos$a_r))
+    ws_grad_C <- matrix(0, nrow = length(ts) - 1, ncol = length(model$par_pos$pw_C))
+  }
+
+  # For each subinterval
+  for (j in seq(length(ts) - 1)){
+
+    # Indexes for taus that fall in the subinterval
+    # here index 1 never ocurs since taus[1] = 0
+    tau_ind <- which(ts[j] < taus & taus < ts[j+1])
+
+    if (length(tau_ind) == 0){
+      ws[j] <- 1
+      next
+    }
+
+    # Find the gaps between taus and time
+    tau_gaps <- taus[tau_ind] - ts[j]
+
+    # Find survival at gaps
+    S_tau_gaps <- base_survival(model, t=tau_gaps, process = 'recurrent',
+                                gradient = gradient)
+
+    # Find the corrsponding constants
+    c_expon <-  pw_C[tau_ind] - pw_C[tau_ind - 1]
+
+    # Exponentiate each s_gap and multiply them
+    ws[j] <- prod(S_tau_gaps^c_expon)
+
+    if (gradient){
+
+      # Get gradient wrt hazard of baseline survival
+      S_tau_grad <- attr(S_tau_gaps, 'gradient')
+
+      # Gradient wrt hazard parameters
+      ws_grad[j,] <- renewal_grad(S_tau_gaps, S_tau_grad, c_expon)
+
+      # Gracient wrt piecewise constants
+      log_diff <- diff(c(0, log(S_tau_gaps)))
+      ws_grad_C[j, tau_ind - 1] <- ws[j] * log_diff
+    }
+  }
+
+  # Add gradients as attributed
+  if (gradient){
+    attr(ws, 'gradient') <- ws_grad
+    attr(ws, 'gradient_C') <- ws_grad_C
+  }
+
+  return(ws)
 }
 
 #.............................................................................#
