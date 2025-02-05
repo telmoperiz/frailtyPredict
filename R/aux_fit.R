@@ -22,10 +22,10 @@ valid_posit_constraint <- function(par_pos, model_funs){
                                    list())
   posit_cons[par_pos$a_r]<-do.call(paste(model_funs$hazard_r, 'posit', sep = '_'),
                                    list())
-  
+
   # Positivity constraint for piecewise Cs
   posit_cons[par_pos$pw_C] <- TRUE
-  
+
   return(posit_cons)
 }
 
@@ -138,6 +138,11 @@ iloglik_intfrailty_gradient <- function(obs, model){
   S_r<-surv_given_history(model, t=times(obs$ter_time), Tjs=Tjs, gradient=TRUE)
   grad_r<-attr(S_r, "gradient") #gradient as attribute
 
+  # Gradient wrt piecewise constants
+  if (model$rec_timescale == 'piecewise-renewal'){
+    grad_r_C <- attr(S_r, "gradient_C")
+  }
+
   #Check if the terminal event was observed or censored
   uncens<-as.integer(uncensored(obs$ter_time))
 
@@ -192,6 +197,11 @@ iloglik_intfrailty_gradient <- function(obs, model){
 
   ## Derivative wrt its Recurrent Hazard parameters
   Deriv[model$par_pos$a_r] <- C_r * S_r^(C_r-1) * grad_r * dlikInt$S_r / intfrailty
+
+  ## Derivative wrt Recurrent Hazard piecewise constants
+  if (model$rec_timescale == 'piecewise-renewal'){
+    Deriv[model$par_pos$pw_C] <- C_r * S_r^(C_r-1) * grad_r_C * dlikInt$S_r / intfrailty
+  }
 
   ## Derivative wrt alpha
   Deriv[model$par_pos$alpha]<-( uncens * dlikInt$expo_u + dlikInt$alpha) / intfrailty
@@ -304,9 +314,25 @@ iloglik_nofrailty_gradient <- function(obs, model){
     #Get the derivative: sum across rows
     Deriv[model$par_pos$a_r]<-colSums(ratios_r)
 
+    # Gradient wrt piecewise constants
+    if (model$rec_timescale == 'piecewise-renewal'){
+
+      grad_r_C <- attr(h_r, "gradient_C")
+
+      ratios_r_C <- grad_r_C / replicate(n=ncol(grad_r_C), h_r)
+
+      # This of the positions where Tj falls (by definition)
+      Deriv[model$par_pos$pw_C] <- colSums(ratios_r_C)
+    }
+
     #If there is no recurrent event, the term does not appear in the loglikelihood
   } else {
+
     Deriv[model$par_pos$a_r]<-0
+
+    if (model$rec_timescale == 'piecewise-renewal'){
+      Deriv[model$par_pos$pw_C] <- 0
+    }
   }
 
   ## Derivative of the hazard part wrt alpha is zero

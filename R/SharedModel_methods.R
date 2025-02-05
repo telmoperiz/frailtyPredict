@@ -589,9 +589,11 @@ hazard_given_history.SharedModel<- function(obj, t, Tjs=NULL, gradient=FALSE){
       attr(h, 'gradient') <- hazard_Consts * attr(h_ren, 'gradient')
 
       # Gradient wrt Poisson part parameters (constants)
-      attr(h, 'grandient_C') <- sapply(seq(length(pw_C) - 1), function(col){
+      grad_C <- sapply(seq(length(pw_C) - 1), function(col){
         (ind_C == col + 1) * h_ren
       })
+
+      attr(h, 'gradient_C') <- matrix(grad_C, ncol = length(pw_C) - 1)
     }
 
     # Return piecewise-renewal hazard
@@ -1358,15 +1360,26 @@ surv_given_history.SharedModel<- function(obj, t, Tjs=NULL, gradient = FALSE){
     T_list<-lapply(1:length(t), function(i) c(Tjs[ind_t[[i]]], t[i]))
 
     # Find conditional survival for each t
-    #### !!!!!
-    #### !!!! CHANGE gradient = gradient
-    Sj_l <- lapply(T_list, rec_piece_Surv, model=obj, gradient=TRUE)
+    Sj_l <- lapply(T_list, rec_piece_Surv, model=obj, gradient=gradient)
 
     #Product of the Sjs
     S<-sapply(Sj_l, prod)
 
     if (gradient){
-      # TODO: Compute gradient combining each Sj
+
+      # Get gradients for each gap
+      Sj_grad_l <- lapply(Sj_l, attr, which="gradient")
+      Sj_grad_C_l <- lapply(Sj_l, attr, which="gradient_C")
+
+      # Compute product gradient for each t
+      S_grad <- t(sapply(1:length(t), function(ti)
+        renewal_grad(Sj_l[[ti]], Sj_grad_l[[ti]])))
+      S_grad_C <- t(sapply(1:length(t), function(ti)
+        renewal_grad(Sj_l[[ti]], Sj_grad_C_l[[ti]])))
+
+      # Set attributes
+      attr(S, "gradient") <- S_grad
+      attr(S, "gradient_C") <- S_grad_C
     }
 
 
