@@ -385,41 +385,80 @@ shared_frailty_fit <- function(data, terminal_formula, recurrent_formula, obsvar
   }
 
   # Optimization
-  res <- stats::nlm(loglikelihood, nu_ini,
-                   OBSL = OBSL, par_pos = par_pos, posit_cons = posit_cons,
-                   model_funs = model_funs, rec_timescale = rec_timescale,
-                   int_mode = int_mode, MC_N = MC_N, GC_nodes = GC_nodes,
-                   int_seq = int_seq, is_control = is_control,
-                   anal.grad = anal.grad, BHHH.hessian = BHHH.hessian,
-                   hessian = TRUE, typsize = par_scale, gradtol=gradtol,
-                   steptol = steptol, iterlim = iterlim, print.level=print_level,
-                   check.analyticals = FALSE)
+  # res <- stats::nlm(loglikelihood, nu_ini,
+  #                  OBSL = OBSL, par_pos = par_pos, posit_cons = posit_cons,
+  #                  model_funs = model_funs, rec_timescale = rec_timescale,
+  #                  int_mode = int_mode, MC_N = MC_N, GC_nodes = GC_nodes,
+  #                  int_seq = int_seq, is_control = is_control,
+  #                  anal.grad = anal.grad, BHHH.hessian = BHHH.hessian,
+  #                  hessian = TRUE, typsize = par_scale, gradtol=gradtol,
+  #                  steptol = steptol, iterlim = iterlim, print.level=print_level,
+  #                  check.analyticals = FALSE)
+
+  res <- stats::optim(nu_ini, loglikelihood,
+                    OBSL = OBSL, par_pos = par_pos, posit_cons = posit_cons,
+                    model_funs = model_funs, rec_timescale = rec_timescale,
+                    int_mode = int_mode, MC_N = MC_N, GC_nodes = GC_nodes,
+                    int_seq = int_seq, is_control = is_control,
+                    anal.grad = anal.grad, BHHH.hessian = BHHH.hessian,
+                    method = 'L-BFGS-B',
+                    lower = c(-Inf, 0, 0, 0, 0, 0, -Inf, -Inf), #c(-Inf, 0, 0, 0, 0, 0, -Inf, -Inf, 0),
+                    upper = rep(Inf, length(nu_ini)),
+                    control = list(trace = print_level,
+                                   parscale = par_scale,
+                                   maxit = iterlim,
+                                   factr = steptol,
+                                   pgtol = gradtol,
+                                   REPORT = 1
+                    ),
+                    hessian = TRUE
+                    )
 
   #Number of warnings (usually Infinity (0 inside the log))
   N_warn<-length(last.warning)
 
   #Recover the estimate from the transformation
-  theta<-posit_constraint(res$estimate, posit_cons, type = "direct")
+  # theta<-posit_constraint(res$estimate, posit_cons, type = "direct")
+  theta<-posit_constraint(res$par, posit_cons, type = "direct")
 
   ##### Build the output (SharedModel) #####
+  # out<-SharedModel(par=theta, varmat = NULL, par_pos=par_pos,
+  #                   var_names=list(terminal=colnames(OBSL[[1]]$ter_covs),
+  #                                  recurrent=colnames(OBSL[[1]]$rec_covs)),
+  #                   OBSL=OBSL, logLikelihood = -res$minimum,
+  #                   function_shapes=model_funs, rec_timescale=rec_timescale,
+  #                   Calls=list(terminal=terminal_formula, recurrent=recurrent_formula),
+  #                   optim_control=list(gradtol=gradtol, steptol = steptol, iterlim = iterlim,
+  #                                      iter=res$iterations, nlm_code=res$code,
+  #                                      nlm_hessian = res$hessian,
+  #                                      nlm_warnings=N_warn, int_mode = int_mode,
+  #                                      MC_N = MC_N, GC_nodes=GC_nodes,
+  #                                      is_control = is_control,
+  #                                      anal.grad = anal.grad,
+  #                                      BHHH.hessian = BHHH.hessian,
+  #                                      posit_cons = posit_cons,
+  #                                      par_scale = par_scale,
+  #                                      NA_obsvar = removed)
+  #                   )
+
   out<-SharedModel(par=theta, varmat = NULL, par_pos=par_pos,
-                    var_names=list(terminal=colnames(OBSL[[1]]$ter_covs),
-                                   recurrent=colnames(OBSL[[1]]$rec_covs)),
-                    OBSL=OBSL, logLikelihood = -res$minimum,
-                    function_shapes=model_funs, rec_timescale=rec_timescale,
-                    Calls=list(terminal=terminal_formula, recurrent=recurrent_formula),
-                    optim_control=list(gradtol=gradtol, steptol = steptol, iterlim = iterlim,
-                                       iter=res$iterations, nlm_code=res$code,
-                                       nlm_hessian = res$hessian,
-                                       nlm_warnings=N_warn, int_mode = int_mode,
-                                       MC_N = MC_N, GC_nodes=GC_nodes,
-                                       is_control = is_control,
-                                       anal.grad = anal.grad,
-                                       BHHH.hessian = BHHH.hessian,
-                                       posit_cons = posit_cons,
-                                       par_scale = par_scale,
-                                       NA_obsvar = removed)
-                    )
+                   var_names=list(terminal=colnames(OBSL[[1]]$ter_covs),
+                                  recurrent=colnames(OBSL[[1]]$rec_covs)),
+                   OBSL=OBSL, logLikelihood = -res$value,
+                   function_shapes=model_funs, rec_timescale=rec_timescale,
+                   Calls=list(terminal=terminal_formula, recurrent=recurrent_formula),
+                   optim_control=list(gradtol=gradtol, steptol = steptol, iterlim = iterlim,
+                                      iter=0, nlm_code=res$convergence,
+                                      nlm_hessian = res$hessian,
+                                      nlm_warnings=N_warn, int_mode = int_mode,
+                                      MC_N = MC_N, GC_nodes=GC_nodes,
+                                      is_control = is_control,
+                                      anal.grad = anal.grad,
+                                      BHHH.hessian = BHHH.hessian,
+                                      posit_cons = posit_cons,
+                                      par_scale = par_scale,
+                                      NA_obsvar = removed)
+  )
 
   # Compute asymptotic variance
   out$varmat <- asymptvar(out)
