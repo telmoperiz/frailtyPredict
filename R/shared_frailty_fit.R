@@ -115,7 +115,7 @@ shared_frailty_fit <- function(data, terminal_formula, recurrent_formula, obsvar
   if (!(rec_timescale %in% timescale_supp)){
     stop(paste('Invalid timescale. Supported:', paste(timescale_supp, collapse = ', ')))
   }
-  
+
   # Check thresholds for piecewise-renewal
   if(rec_timescale == 'piecewise-renewal' && is.null(rec_piecewise_ts)){
     stop('Must provide rec_piecewise_ts (thresholds)')
@@ -216,9 +216,13 @@ shared_frailty_fit <- function(data, terminal_formula, recurrent_formula, obsvar
   TR<-stats::model.extract(MR, 'response') #Recurrent event times
   ZR<-stats::model.matrix(TermsR, MR) #Covariate matrix
 
-  #Remove the fake intercept
-  ZD<-ZD[,-1]
-  ZR<-ZR[,-1]
+  #Remove the fake intercept (the first column is the intercept)
+  namesD <- colnames(ZD)[-1]
+  namesR <- colnames(ZR)[-1]
+  ZD<-matrix(ZD[,-1], nrow = nrow(ZD))
+  colnames(ZD) <- namesD
+  ZR<-matrix(ZR[,-1], nrow = nrow(ZR))
+  colnames(ZR) <- namesR
   attr(TermsD, "intercept")<-0
   attr(TermsR, "intercept")<-0
 
@@ -280,7 +284,7 @@ shared_frailty_fit <- function(data, terminal_formula, recurrent_formula, obsvar
 
   beta_r<-defs_r$beta
   a_r<- defs_r$a
-  
+
   # Piecewise Constants C1, C2, ...
   if(rec_timescale == 'piecewise-renewal'){
     pw_C <- rep(1, length(rec_piecewise_ts))
