@@ -5,7 +5,7 @@ frailtyPredict.Rproj
 __pycache__/
 
 # Test files
-test.R
+test*
 
 # Data files
 new_data_extra.RData
