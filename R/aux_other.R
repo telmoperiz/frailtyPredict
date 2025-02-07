@@ -323,7 +323,7 @@ rec_piece_weights <- function(ts, model, gradient = FALSE){
                                 gradient = gradient)
 
     # Find the corrsponding constants
-    c_expon <-  pw_C[tau_ind] - pw_C[tau_ind - 1]
+    c_expon <-  pw_C[tau_ind - 1] - pw_C[tau_ind]
 
     # Exponentiate each s_gap and multiply them
     ws[j] <- prod(S_tau_gaps^c_expon)
