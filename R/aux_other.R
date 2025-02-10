@@ -412,6 +412,11 @@ textable_vertical <- function(Tabs, TexTabs, namesD, namesR){
   tab_body_beta<-body_lines(TexTabs$beta_r)
   tab_body_a<-body_lines(TexTabs$a_r)
   total_lines<-length(tab_body_beta)+length(tab_body_a)
+  
+  if (!is.null(TexTabs$piecewise_Cs)){
+    tab_body_Cs <- body_lines(TexTabs$piecewise_Cs)
+    total_lines<-total_lines+length(tab_body_Cs)
+  }
 
   #name of the event
   textable<-paste(textable, '\\multirow{', total_lines ,'}{*}{',
@@ -429,7 +434,14 @@ textable_vertical <- function(Tabs, TexTabs, namesD, namesR){
   for (l in seq_along(tab_body_a)){
     textable<-paste(textable, ' & ', tab_body_a[[l]], '\n', sep = '')
   }
-
+  
+  # Write lines: hazard constants
+  if (!is.null(TexTabs$piecewise_Cs)){
+    for (l in seq_along(tab_body_Cs)){
+      textable<-paste(textable, ' & ', tab_body_Cs[[l]], '\n', sep = '')
+    }
+  }
+  
   #hline
   textable<-paste(textable, '\\hline\n', sep='')
 
@@ -509,6 +521,12 @@ textable_horizontal <- function(Tabs, TexTabs, namesD, namesR){
   # Hazards (joint)
   body_a_d <- body_lines(TexTabs$a_d)
   body_a_r <- body_lines(TexTabs$a_r)
+  
+  if(!is.null(TexTabs$piecewise_Cs)){
+    body_a_r <- c(body_a_r, body_lines(TexTabs$piecewise_Cs))
+  }
+  
+  # Join
   body_a <- join_body_lines(body_a_d, body_a_r)
 
   # Preamble

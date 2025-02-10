@@ -798,8 +798,14 @@ param_hazard.SharedModel <- function(obj){
   names_d<-do.call(paste(obj$funtion_shapes$hazard_d, 'names', sep = '_'), list())
   names_r<-do.call(paste(obj$funtion_shapes$hazard_r, 'names', sep = '_'), list())
   names_C<-NULL
-  if(!is.null(obj$function_shapes$red_piecewise_ts)){
-    names_C<-paste('C', obj$function_shapes$red_piecewise_ts, sep = '>')
+  
+  if(!is.null(obj$funtion_shapes$rec_piecewise_ts)){
+    names_C<-paste('C', obj$funtion_shapes$rec_piecewise_ts, '-',
+                   obj$funtion_shapes$rec_piecewise_ts[-1],
+                   sep = '')
+    names_C[length(names_C)] <- paste('C',
+                                      obj$funtion_shapes$rec_piecewise_ts[length(names_C)],
+                                      sep = '>')
   }
 
   #Set names
@@ -980,7 +986,7 @@ param_tables.SharedModel <- function(obj,
   i<-1
   for (par in params) {
 
-    # reate new table w/ the info
+    # create new table w/ the info
     newtab<-data.frame(par[cols])
     colnames(newtab) <- col_names
     rownames(newtab) <- par$names
@@ -993,7 +999,11 @@ param_tables.SharedModel <- function(obj,
   }
 
   #Name each table
-  names(tables)<-c('beta_d', 'beta_r', 'a_d', 'a_r', 'frail')
+  if(obj$rec_timescale %in% c('piecewise-renewal')){
+    names(tables)<-c('beta_d', 'beta_r', 'a_d', 'a_r', 'frail', 'piecewise_Cs')
+  } else {
+    names(tables)<-c('beta_d', 'beta_r', 'a_d', 'a_r', 'frail')
+  }
 
   return(tables)
 }
@@ -1078,7 +1088,7 @@ print.SharedModel <- function(obj, cols=c('est', 'hr', 'pvals'),
   #Terminal
   cat('Hazard for the terminal event = ',
       stringr::str_remove(obj$funtion_shapes$hazard_d, 'hazard_'), '.\n', sep='')
-  cat('Parameters:\n')
+  cat('Baseline Hazard Parameters:\n')
   print(round(Tabs$a_d, digits=digits))
   cat('\n')
 
@@ -1086,8 +1096,13 @@ print.SharedModel <- function(obj, cols=c('est', 'hr', 'pvals'),
   cat('Model for the recurrent event = ', obj$rec_timescale, '.\n', sep='')
   cat('Hazard for the recurrent event = ',
       stringr::str_remove(obj$funtion_shapes$hazard_r, 'hazard_'), '.\n', sep='')
-  cat('Parameters:\n')
+  cat('Baseline Hazard Parameters:\n')
   print(round(Tabs$a_r, digits=digits))
+  
+  if(obj$rec_timescale == c('piecewise-renewal')){
+    cat('Piece constants (Poisson part):\n')
+    print(round(Tabs$piecewise_Cs, digits = digits))
+  }
   cat('\n\n')
 
   #Frailty estimates
@@ -1446,8 +1461,8 @@ toLatex.SharedModel <- function(obj, filename='tab.tex',
   #If not, just export the tables
   } else {
 
-    #Set table names
-    tabnames<-c("regCoef_ter", "regCoef_rec", "hazard_ter", "hazard_rec", "frailty")
+    # Get table names
+    tabnames<-names(Tabs)
 
     #Print the tables
     for (i in seq_along(Tabs)){

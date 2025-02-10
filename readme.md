@@ -24,5 +24,4 @@ The prediction interface is provided by the `predict` and `predict_plot` methods
 
 ## TO DO
 * Analytic gradient for `rec_timescale = 'piecewise-renewal' may not be correctly computed.
-* Need to implement print/toLatex methods for `rec_timescale = 'piecewise-renewal'.
 * Estimation with `rec_timescale = 'piecewise-renewal' is NOT documented. 
