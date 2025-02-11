@@ -798,7 +798,7 @@ param_hazard.SharedModel <- function(obj){
   names_d<-do.call(paste(obj$funtion_shapes$hazard_d, 'names', sep = '_'), list())
   names_r<-do.call(paste(obj$funtion_shapes$hazard_r, 'names', sep = '_'), list())
   names_C<-NULL
-  
+
   if(!is.null(obj$funtion_shapes$rec_piecewise_ts)){
     names_C<-paste('C', obj$funtion_shapes$rec_piecewise_ts, '-',
                    obj$funtion_shapes$rec_piecewise_ts[-1],
@@ -900,7 +900,7 @@ param_tables.SharedModel <- function(obj,
     params$a_d$est<-unname(parhaz$terminal)
     params$a_r$est<-unname(parhaz$recurrent)
     params$frail$est<-unname(parfrail)
-    
+
     if (obj$rec_timescale %in% c('piecewise-renewal')){
       params$piecewise_Cs$est<-unname(parhaz$piecewise_Cs)
     }
@@ -912,7 +912,7 @@ param_tables.SharedModel <- function(obj,
     params$a_d$est_SE<-SE[obj$par_pos$a_d]
     params$a_r$est_SE<-SE[obj$par_pos$a_r]
     params$frail$est_SE<-SE[c(obj$par_pos$alpha, obj$par_pos$sig)]
-    
+
     if (obj$rec_timescale %in% c('piecewise-renewal')){
       params$piecewise_Cs$est_SE<-SE[obj$par_pos$pw_C]
     }
@@ -924,7 +924,7 @@ param_tables.SharedModel <- function(obj,
     params$a_d$est_CI<-est_CIs[obj$par_pos$a_d]
     params$a_r$est_CI<-est_CIs[obj$par_pos$a_r]
     params$frail$est_CI<-est_CIs[c(obj$par_pos$alpha, obj$par_pos$sig)]
-    
+
     if (obj$rec_timescale %in% c('piecewise-renewal')){
       params$piecewise_Cs$est_CI<-est_CIs[obj$par_pos$pw_C]
     }
@@ -936,7 +936,7 @@ param_tables.SharedModel <- function(obj,
     params$a_d$pvals<-pvals[obj$par_pos$a_d]
     params$a_r$pvals<-pvals[obj$par_pos$a_r]
     params$frail$pvals<-pvals[c(obj$par_pos$alpha, obj$par_pos$sig)]
-    
+
     if (obj$rec_timescale %in% c('piecewise-renewal')){
       params$piecewise_Cs$pvals<-pvals[obj$par_pos$pw_C]
     }
@@ -948,7 +948,10 @@ param_tables.SharedModel <- function(obj,
     params$a_d$hr <- NA
     params$a_r$hr <- NA
     params$frail$hr <- NA
-    params$piecewise_Cs$hr <- NA
+
+    if (obj$rec_timescale %in% c('piecewise-renewal')){
+      params$piecewise_Cs$hr <- NA
+    }
   }
 
   if ('hr_SE' %in% cols){
@@ -957,7 +960,10 @@ param_tables.SharedModel <- function(obj,
     params$a_d$hr_SE <- NA
     params$a_r$hr_SE <- NA
     params$frail$hr_SE <- NA
-    params$piecewise_Cs$hr_SE <- NA
+
+    if (obj$rec_timescale %in% c('piecewise-renewal')){
+      params$piecewise_Cs$hr_SE <- NA
+    }
   }
 
   if ('hr_CI' %in% cols){
@@ -966,7 +972,10 @@ param_tables.SharedModel <- function(obj,
     params$a_d$hr_CI<-NA
     params$a_r$hr_CI<-NA
     params$frail$hr_CI<-NA
-    params$piecewise_Cs$hr_CI <- NA
+
+    if (obj$rec_timescale %in% c('piecewise-renewal')){
+      params$piecewise_Cs$hr_CI <- NA
+    }
   }
 
   # Add names
@@ -975,7 +984,7 @@ param_tables.SharedModel <- function(obj,
   params$a_d$names<-names(parhaz$terminal)
   params$a_r$names<-names(parhaz$recurrent)
   params$frail$names<-names(parfrail)
-  
+
   if (obj$rec_timescale %in% c('piecewise-renewal')){
     params$piecewise_Cs$names <- names(parhaz$piecewise_Cs)
   }
@@ -1098,7 +1107,7 @@ print.SharedModel <- function(obj, cols=c('est', 'hr', 'pvals'),
       stringr::str_remove(obj$funtion_shapes$hazard_r, 'hazard_'), '.\n', sep='')
   cat('Baseline Hazard Parameters:\n')
   print(round(Tabs$a_r, digits=digits))
-  
+
   if(obj$rec_timescale == c('piecewise-renewal')){
     cat('Piece constants (Poisson part):\n')
     print(round(Tabs$piecewise_Cs, digits = digits))
