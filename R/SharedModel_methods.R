@@ -823,7 +823,7 @@ param_hazard.SharedModel <- function(obj){
 #'
 #' @param obj [SharedModel()] object with fit results.
 #' @param cols character vector with values to display. A subset of
-#' `c('est', 'est_SE', 'hr', 'hr_SE', 'pvals')`.
+#' `c('est', 'est_SE', 'est_CI', 'hr', 'hr_SE', 'hr_CI', 'pvals')`.
 #' @param col_names Names of the columns.
 #' @param BHHH `TRUE` to use Score based variance for computations. `FALSE` to
 #' use the variance based on the optimization routine Hessian.

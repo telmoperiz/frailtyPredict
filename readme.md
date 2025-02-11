@@ -23,5 +23,12 @@ The prediction interface is provided by the `predict` and `predict_plot` methods
 > Package `reticulate` has issues with subprocesses on Windows and RStudio (see [here](https://github.com/rstudio/reticulate/issues/518)). Posible solution: use `predict_plot` with `render_plot=FALSE` to generate a temporal JSON file with prediction information and then call `shared_frailty_plot` from `inst/shared_frailty_plot.py`.
 
 ## TO DO
-* Analytic gradient for `rec_timescale = 'piecewise-renewal' may not be correctly computed.
-* Estimation with `rec_timescale = 'piecewise-renewal' is NOT documented. 
+* Analytic gradient for `rec_timescale = 'piecewise-renewal'` may not be correctly computed.
+* Estimation with `rec_timescale = 'piecewise-renewal'` is NOT documented.
+* Finish documentation:
+    * aux_int.R
+    * aux_other.R
+    * aux_pred.R
+    * fun_haz_Weibull.R
+    * fun_pdf_gamma.R
+* Finish documentation: add **example** in functions with the 'examples' tag.
