@@ -22,7 +22,7 @@
 \item{filename}{Path where tables are saved}
 
 \item{cols}{character vector with values to display. A subset of
-\code{c('est', 'est_SE', 'hr', 'hr_SE', 'pvals')}.}
+\code{c('est', 'est_SE', 'est_CI', 'hr', 'hr_SE', 'hr_CI', 'pvals')}.}
 
 \item{col_names}{Names of the columns.}
 

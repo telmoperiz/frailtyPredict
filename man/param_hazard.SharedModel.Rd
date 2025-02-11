@@ -14,6 +14,7 @@ List with the parameters:
 \itemize{
 \item \verb{$terminal} = for the terminal event process.
 \item \verb{$recurrent} = for the recurrent event process.
+\item \verb{$piecewise_Cs} = for the piecewise renewal hazard.
 }
 }
 \description{

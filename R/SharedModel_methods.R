@@ -43,6 +43,7 @@
 #' * `$a_r` = parameters of the baseline hazard for recurrent events.
 #' * `$beta_d` = covariate parameters in the terminal event model.
 #' * `$beta_r` = covariate parameters in the recurrent events model.
+#' * `$pw_C` = parameters of the piecewise renewal hazard (Poisson constants).
 #' @param var_names list with covariate variable names:
 #' * `$terminal` = for terminal event model.
 #' * `$recurrent` = for recurrent events model.
@@ -54,6 +55,7 @@
 #' * `$surv_d` = model for baseline survival function of the terminal event.
 #' * `$surv_r` = model for baseline survival function of the recurrent events.
 #' * `$pdf` = model for the distribution of the frailty variable.
+#' * `$rec_piecewise_ts` = thresholds for piecewise renewal hazard.
 #' @param rec_timescale Model specification for the hazard of the recurrent event.
 #' @param Calls list with calls with formulae:
 #' * `$terminal` = for terminal event model.
@@ -785,6 +787,7 @@ param_frailty.SharedModel <- function(obj){
 #' @return List with the parameters:
 #' * `$terminal` = for the terminal event process.
 #' * `$recurrent` = for the recurrent event process.
+#' * `$piecewise_Cs` = for the piecewise renewal hazard.
 #'
 #' @export
 param_hazard.SharedModel <- function(obj){

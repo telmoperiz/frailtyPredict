@@ -30,6 +30,7 @@ SharedModel(
 \item \verb{$a_r} = parameters of the baseline hazard for recurrent events.
 \item \verb{$beta_d} = covariate parameters in the terminal event model.
 \item \verb{$beta_r} = covariate parameters in the recurrent events model.
+\item \verb{$pw_C} = parameters of the piecewise renewal hazard (Poisson constants).
 }}
 
 \item{var_names}{list with covariate variable names:
@@ -49,6 +50,7 @@ SharedModel(
 \item \verb{$surv_d} = model for baseline survival function of the terminal event.
 \item \verb{$surv_r} = model for baseline survival function of the recurrent events.
 \item \verb{$pdf} = model for the distribution of the frailty variable.
+\item \verb{$rec_piecewise_ts} = thresholds for piecewise renewal hazard.
 }}
 
 \item{rec_timescale}{Model specification for the hazard of the recurrent event.}

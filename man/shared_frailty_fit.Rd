@@ -13,6 +13,7 @@ shared_frailty_fit(
   rec_hazard,
   rec_timescale,
   frailty,
+  rec_piecewise_ts = NULL,
   int_mode = "ISQMC",
   MC_N = 1000,
   GC_nodes = 32,
@@ -50,10 +51,12 @@ terminal event. Supports: \code{"Weibull"}.}
 \item{rec_hazard}{Parametric specification of the baseline hazard for the
 recurrent event. Supports: \code{"Weibull"}.}
 
-\item{rec_timescale}{Model specification for the hazard of the recurrent event
-Supports: \code{"Poisson"} and \code{"renewal"}.}
+\item{rec_timescale}{Model specification for the hazard of the recurrent event.
+Supports: \code{"Poisson"}, \code{"renewal"}, and \code{"piecewise-renewal"}.}
 
 \item{frailty}{Distribution of the frailty variable. Supports: \code{"gamma"}.}
+
+\item{rec_piecewise_ts}{Thresholds for the piecewise-renewal timescale. See details.}
 
 \item{int_mode}{How to compute the numerical integrals:
 \itemize{
@@ -121,11 +124,21 @@ history of recurrent events \eqn{N_i(t)}.
 
 If \code{rec_timescale = "Poisson"}, the hazard for recurrent events is
 \eqn{\lambda_0^r(t|N_i^r(t))=h_0^r(t)}, where \eqn{h_0^r(t)} is the baseline
-hazard for recurrent events. If \code{rec_timescale = "renewal"}, the hazard for
+hazard for recurrent events.
+
+If \code{rec_timescale = "renewal"}, the hazard for
 recurrent events is \eqn{\lambda_0^r(t|N_i^r(t))=h_0^r(t - T^r_{i, N_i(t-)})}.
 In the preceeding equation, \eqn{T^r_{i, N_i(t-)}} represents the time of the
 last recurrent event before time \eqn{t}, so the renewal time scale fits the
 model in gap times.
+
+If \code{rec_timescale = "piecewise-renewal"}, the hazard for recurrent events is
+\deqn{\lambda_0^r(t|N_i^r(t))= \sum_{k=1}^K c_k h_0^r(t - T^r_{i, N_i(t-)})
+1(\tau_{k-1} \leq t < \tau_k),}
+where \eqn{c_k} are constants, \eqn{\tau_k} are thresholds, and \eqn{1(\cdot)}
+is the indicator function. The following normalizations are in place: \eqn{c_1=1},
+\eqn{\tau_0=0}, and \eqn{\tau_K=\infty}. The remaining \eqn{K - 1} thresholds
+must be supplied by the \code{rec_piecewise_ts} argument.
 
 When \code{ter_hazard = "Weibull"} or \code{rec_hazard = "Weibull"}, the corresponding
 baseline hazards are

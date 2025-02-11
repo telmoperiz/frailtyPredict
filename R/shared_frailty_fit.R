@@ -17,11 +17,21 @@
 #'
 #' If `rec_timescale = "Poisson"`, the hazard for recurrent events is
 #' \eqn{\lambda_0^r(t|N_i^r(t))=h_0^r(t)}, where \eqn{h_0^r(t)} is the baseline
-#' hazard for recurrent events. If `rec_timescale = "renewal"`, the hazard for
+#' hazard for recurrent events.
+#'
+#' If `rec_timescale = "renewal"`, the hazard for
 #' recurrent events is \eqn{\lambda_0^r(t|N_i^r(t))=h_0^r(t - T^r_{i, N_i(t-)})}.
 #' In the preceeding equation, \eqn{T^r_{i, N_i(t-)}} represents the time of the
 #' last recurrent event before time \eqn{t}, so the renewal time scale fits the
 #' model in gap times.
+#'
+#' If `rec_timescale = "piecewise-renewal"`, the hazard for recurrent events is
+#' \deqn{\lambda_0^r(t|N_i^r(t))= \sum_{k=1}^K c_k h_0^r(t - T^r_{i, N_i(t-)})
+#' 1(\tau_{k-1} \leq t < \tau_k),}
+#' where \eqn{c_k} are constants, \eqn{\tau_k} are thresholds, and \eqn{1(\cdot)}
+#' is the indicator function. The following normalizations are in place: \eqn{c_1=1},
+#' \eqn{\tau_0=0}, and \eqn{\tau_K=\infty}. The remaining \eqn{K - 1} thresholds
+#' must be supplied by the `rec_piecewise_ts` argument.
 #'
 #' When `ter_hazard = "Weibull"` or `rec_hazard = "Weibull"`, the corresponding
 #' baseline hazards are
@@ -49,9 +59,10 @@
 #' terminal event. Supports: `"Weibull"`.
 #' @param rec_hazard Parametric specification of the baseline hazard for the
 #' recurrent event. Supports: `"Weibull"`.
-#' @param rec_timescale Model specification for the hazard of the recurrent event
-#' Supports: `"Poisson"` and `"renewal"`.
+#' @param rec_timescale Model specification for the hazard of the recurrent event.
+#' Supports: `"Poisson"`, `"renewal"`, and `"piecewise-renewal"`.
 #' @param frailty Distribution of the frailty variable. Supports: `"gamma"`.
+#' @param rec_piecewise_ts Thresholds for the piecewise-renewal timescale. See details.
 #' @param int_mode How to compute the numerical integrals:
 #' * `"GQ"` = Gaussian Quadrature.
 #' * `"MC"` = Monte Carlo, with R sampler.
