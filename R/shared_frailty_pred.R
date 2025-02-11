@@ -89,6 +89,11 @@ predict.SharedModel <- function(obj, t, w, covs, hist=NULL,
 
   # Event history
   if(length(hist) > 0){
+
+    if(any(diff(hist) <= 0)){
+      stop('Recurrent event times must be in increasing order')
+    }
+
     if(max(hist)>t){
       stop('Recurrent event times must be smaller than t')
     }
