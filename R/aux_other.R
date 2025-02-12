@@ -217,7 +217,7 @@ renewal_grad <- function(Sj, Sj_grad, weights = 1){
 # (used at rec_piece_Surv)
 rec_piece_exponent <- function(ts, model){
 
-  # Remove first time in ts, which corresponds to zero
+  # Remove first time in ts, which corresponds to zero (beginning of follow-yp)
   ts <- ts[-1]
 
   # Get piecewise times and constants
@@ -225,6 +225,11 @@ rec_piece_exponent <- function(ts, model){
   pw_C <- c(1, param_hazard(model)$piecewise_Cs)
 
   ind_C <- sapply(ts, function(t) sum(taus < t))
+
+  # Correct any 0 index
+  # (this is the case when t = 0 is in ts, i.e, recurrent at time 0)
+  ind_C[ind_C == 0] <- 1
+
 
   # Remove the first
   return(list(ind_C = ind_C, exp_C = pw_C[ind_C]))
