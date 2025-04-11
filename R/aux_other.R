@@ -217,7 +217,7 @@ renewal_grad <- function(Sj, Sj_grad, weights = 1){
 # (used at rec_piece_Surv)
 rec_piece_exponent <- function(ts, model){
 
-  # Remove first time in ts, which corresponds to zero
+  # Remove first time in ts, which corresponds to zero (beginning of follow-yp)
   ts <- ts[-1]
 
   # Get piecewise times and constants
@@ -225,6 +225,11 @@ rec_piece_exponent <- function(ts, model){
   pw_C <- c(1, param_hazard(model)$piecewise_Cs)
 
   ind_C <- sapply(ts, function(t) sum(taus < t))
+
+  # Correct any 0 index
+  # (this is the case when t = 0 is in ts, i.e, recurrent at time 0)
+  ind_C[ind_C == 0] <- 1
+
 
   # Remove the first
   return(list(ind_C = ind_C, exp_C = pw_C[ind_C]))
@@ -272,9 +277,10 @@ rec_piece_Surv <- function(ts, model, gradient = FALSE){
                                    )
 
       # Gradient of product w.r.t. piecewise constants
-      w_deriv <- (Sb[j] ^ expo$exp_C[j]) * w_grad_C[j,]
+      Surv_expo <- Sb[j] ^ expo$exp_C[j]
+      w_deriv <-  Surv_expo * w_grad_C[j,]
       Sb_deriv_ind <- seq(from = 2, to = ncol(Sjs_grad_C) + 1) == expo$ind_C[j]
-      Sjs_grad_C[j,] <-  w_deriv + weight[j] * log(Sb[j]) * Sb_deriv_ind
+      Sjs_grad_C[j,] <-  w_deriv + weight[j] * log(Sb[j]) * Surv_expo * Sb_deriv_ind
     }
 
     # Store
@@ -337,12 +343,26 @@ rec_piece_weights <- function(ts, model, gradient = FALSE){
       ws_grad[j,] <- renewal_grad(S_tau_gaps, S_tau_grad, c_expon)
 
       # Gracient wrt piecewise constants
-      log_diff <- diff(c(0, log(S_tau_gaps)))
-      ws_grad_C[j, tau_ind - 1] <- ws[j] * log_diff
+      
+      # Log-differencest (excepto corner cases)
+      log_diff <- c(log(S_tau_gaps), 0) - c(0, log(S_tau_gaps))
+      
+      # Index for gradient (c_expon go from tau_ind[first] - 1 to tau_ind[last])
+      grad_ind <- c(tau_ind[1] -1, tau_ind)
+      
+      # Remove tau_ind = 1 (always set to 1) if present
+      if (grad_ind[1] == 1){
+        grad_ind <- grad_ind[-1]
+        log_diff <- log_diff[-1]
+      }
+      
+      # Set corresponding gradients
+      # (substract one since tau_ind=2 is first possible case)
+      ws_grad_C[j, grad_ind - 1] <- ws[j] * log_diff
     }
   }
 
-  # Add gradients as attributed
+  # Add gradients as attributes
   if (gradient){
     attr(ws, 'gradient') <- ws_grad
     attr(ws, 'gradient_C') <- ws_grad_C

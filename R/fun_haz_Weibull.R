@@ -2,6 +2,11 @@
 
 # hazard
 hazard_Weibull <- function(t, param){
+  
+  # Check time larger than 0
+  if (any(t <= 0)){
+    stop('Times must be larger than 0')
+  }
 
   #Scale parameter
   scal<-param['scale']
@@ -59,6 +64,11 @@ hazard_Weibull_defaults<- function(data, terminal_formula, recurrent_formula,
 
 # gradient of hazard
 hazard_Weibull_gradient <- function(t, param){
+  
+  # Check time larger than 0
+  if (any(t <= 0)){
+    stop('Times must be larger than 0')
+  }
 
   #Scale parameter
   scal<-param['scale']
