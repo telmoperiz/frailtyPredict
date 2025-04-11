@@ -22,6 +22,7 @@ shared_frailty_fit(
   BHHH.hessian = FALSE,
   param_scale = "auto",
   positivity_cons = "auto",
+  ini_guess = NULL,
   gradtol = 1e-06,
   steptol = 1e-06,
   iterlim = 200,
@@ -93,6 +94,9 @@ or \verb{numeric(parameter length)}, for customized scalling.}
 Values = \code{"auto"} (default), for automatic selection of the constrained parameters,
 \code{"none"}, for optimization without constraints, or \verb{logical(parameter length)},
 for customized positivity constraints.}
+
+\item{ini_guess}{\verb{numeric(parameter length)} Initial guess for parameters.
+If \code{NULL} (default), the function will use the default initial guess.}
 
 \item{gradtol}{Tolerance for the gradient, see \code{\link[stats:nlm]{stats::nlm()}}.}
 

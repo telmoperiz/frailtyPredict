@@ -87,6 +87,8 @@
 #' Values = `"auto"` (default), for automatic selection of the constrained parameters,
 #' `"none"`, for optimization without constraints, or `logical(parameter length)`,
 #' for customized positivity constraints.
+#' @param ini_guess `numeric(parameter length)` Initial guess for parameters.
+#' If `NULL` (default), the function will use the default initial guess.
 #' @param gradtol Tolerance for the gradient, see [stats::nlm()].
 #' @param steptol Tolerance for the steps, see [stats::nlm()].
 #' @param iterlim Iteration limit, see [stats::nlm()].
@@ -104,6 +106,7 @@ shared_frailty_fit <- function(data, terminal_formula, recurrent_formula, obsvar
                               is_control = list(dist='gamma', param=list(1, 1)),
                               anal.grad = TRUE, BHHH.hessian = FALSE,
                               param_scale = 'auto', positivity_cons = 'auto',
+                              ini_guess = NULL,
                               gradtol = 1e-6, steptol = 1e-6,
                               iterlim = 200, print_level = 0){
 
@@ -277,6 +280,7 @@ shared_frailty_fit <- function(data, terminal_formula, recurrent_formula, obsvar
   }
 
   ##### Define the default parameters #####
+  # This is needed to determine the parameter length and positions
 
   #Terminal event
   defs_d<-do.call(hd_defaults, list(data=data[!OBSIND %in% removed,],
@@ -309,6 +313,14 @@ shared_frailty_fit <- function(data, terminal_formula, recurrent_formula, obsvar
 
   #Initial guess
   theta_ini<-c(alpha, sig, a_d, a_r, beta_d, beta_r, pw_C)
+
+  # Update if user provided
+  if (!is.null(ini_guess)){
+    if (length(ini_guess) != length(theta_ini)){
+      stop('Provided ini_guess must have the same length as number of parameters')
+    }
+    theta_ini <- ini_guess
+  }
 
   #Ordering of the parameters
   par_pos<-vector(mode='list', length = 0) #initialize
