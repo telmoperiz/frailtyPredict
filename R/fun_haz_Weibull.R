@@ -2,7 +2,7 @@
 
 # hazard
 hazard_Weibull <- function(t, param){
-  
+
   # Check time larger than 0
   if (any(t <= 0)){
     stop('Times must be larger than 0')
@@ -51,9 +51,11 @@ hazard_Weibull_defaults<- function(data, terminal_formula, recurrent_formula,
 
   #Get the defaults
   #Cox coefficients
-  defs$beta <- unname(mod$coefficients[-1]) #w/out intercept
+  # Proper scaling as Kalbfleisch and Prentice (p. 42)
+  defs$beta <- - unname(mod$coefficients[-1]) / mod$scale
 
   #Weibull scale and shape
+  # Note that K&P's lambda is the inverse of our scale
   defs$a <- unname(c( exp(mod$coefficients[1]), (mod$scale)^(-1) ))
 
   return(defs)
@@ -64,7 +66,7 @@ hazard_Weibull_defaults<- function(data, terminal_formula, recurrent_formula,
 
 # gradient of hazard
 hazard_Weibull_gradient <- function(t, param){
-  
+
   # Check time larger than 0
   if (any(t <= 0)){
     stop('Times must be larger than 0')
