@@ -31,3 +31,5 @@ The prediction interface is provided by the `predict` and `predict_plot` methods
     * fun_pdf_gamma.R
 * Finish documentation: add **example** in functions with the 'examples' tag.
 * Finish documentation of `dist_relevance_test."SharedModel` in SharedModel_methods.R.
+
+* Implement test for relevance of other baseline hazards: loglogistic, Gompertz.

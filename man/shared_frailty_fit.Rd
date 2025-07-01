@@ -47,10 +47,10 @@ observations. In COLUMNS one must provide:
 \item{obsvar}{Varible indicating observation units (individuals)}
 
 \item{ter_hazard}{Parametric specification of the baseline hazard for the
-terminal event. Supports: \code{"Weibull"}.}
+terminal event. Supports: \code{"Weibull"}, \code{"loglogistic"}.}
 
 \item{rec_hazard}{Parametric specification of the baseline hazard for the
-recurrent event. Supports: \code{"Weibull"}.}
+recurrent event. Supports: \code{"Weibull"}, \code{"loglogistic"}.}
 
 \item{rec_timescale}{Model specification for the hazard of the recurrent event.
 Supports: \code{"Poisson"}, \code{"renewal"}, and \code{"piecewise-renewal"}.}
@@ -147,6 +147,11 @@ must be supplied by the \code{rec_piecewise_ts} argument.
 When \code{ter_hazard = "Weibull"} or \code{rec_hazard = "Weibull"}, the corresponding
 baseline hazards are
 \deqn{h_0(t) = b t^{b-1}/a^b,}
+where \eqn{a} is a scale parameter and \eqn{b} is a shape parameter.
+
+When \code{ter_hazard = "loglogistic"} or \code{rec_hazard = "loglogistic"}, the
+corresponding baseline hazards are
+\deqn{h_0(t) = \frac{b}{a}\frac{(t/a)^{b-1}}{1 + (t/a)^b},}
 where \eqn{a} is a scale parameter and \eqn{b} is a shape parameter.
 
 For \code{frailty = "gamma"} the distribution of \eqn{u_i} is

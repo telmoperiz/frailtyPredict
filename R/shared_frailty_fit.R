@@ -38,6 +38,11 @@
 #' \deqn{h_0(t) = b t^{b-1}/a^b,}
 #' where \eqn{a} is a scale parameter and \eqn{b} is a shape parameter.
 #'
+#' When `ter_hazard = "loglogistic"` or `rec_hazard = "loglogistic"`, the
+#' corresponding baseline hazards are
+#' \deqn{h_0(t) = \frac{b}{a}\frac{(t/a)^{b-1}}{1 + (t/a)^b},}
+#' where \eqn{a} is a scale parameter and \eqn{b} is a shape parameter.
+#'
 #' For `frailty = "gamma"` the distribution of \eqn{u_i} is
 #' \deqn{\frac{u^{1/\sigma-1}\exp(-u/\sigma)}{\sigma^{1/\sigma}\Gamma(1/\sigma)},}
 #' where \eqn{\sigma = Var(u_i)}. Also, \eqn{E[u_i]=1}.
@@ -56,9 +61,9 @@
 #' @param recurrent_formula Formula for the recurrent event.
 #' @param obsvar Varible indicating observation units (individuals)
 #' @param ter_hazard Parametric specification of the baseline hazard for the
-#' terminal event. Supports: `"Weibull"`.
+#' terminal event. Supports: `"Weibull"`, `"loglogistic"`.
 #' @param rec_hazard Parametric specification of the baseline hazard for the
-#' recurrent event. Supports: `"Weibull"`.
+#' recurrent event. Supports: `"Weibull"`, `"loglogistic"`.
 #' @param rec_timescale Model specification for the hazard of the recurrent event.
 #' Supports: `"Poisson"`, `"renewal"`, and `"piecewise-renewal"`.
 #' @param frailty Distribution of the frailty variable. Supports: `"gamma"`.
@@ -119,7 +124,7 @@ shared_frailty_fit <- function(data, terminal_formula, recurrent_formula, obsvar
   }
 
   # Supported hazard models
-  hazard_supp <- c('Weibull')
+  hazard_supp <- c('Weibull', 'loglogistic')
   if (!( (ter_hazard %in% hazard_supp)  & (rec_hazard %in% hazard_supp) )){
     stop(paste('Invalid hazards. Supported:', paste(hazard_supp, collapse = ', ')))
   }

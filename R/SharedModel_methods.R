@@ -484,8 +484,13 @@ dist_relevance_test.SharedModel <- function(obj, verbose = FALSE, BHHH = TRUE){
                           df = NULL),
                      class = "wald.test")
 
+  } else if (obj$funtion_shapes$hazard_r=="hazard_loglogistic"){
+    warning('Test not implemented yet')
+    test<-NULL
+
     #Default
   } else {
+    warning('Baseline hazard function not recognized')
     test<-NULL
   }
 
