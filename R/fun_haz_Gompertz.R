@@ -1,7 +1,7 @@
-###### Baseline hazards: Log-logistic ######
+###### Baseline hazards: Gompertz ######
 
 # hazard
-hazard_loglogistic <- function(t, param){
+hazard_Gompertz <- function(t, param){
 
   # Check time larger than 0
   if (any(t <= 0)){
@@ -15,8 +15,8 @@ hazard_loglogistic <- function(t, param){
   shap<-param['shape']
 
   #Log-logistic hazard function:
-  # h(t)= (shape/scale) * (t/scale)^(shape-1) / (1 + (t/scale)^shape)
-  h <- unname((shap/scal) * (t/scal)^(shap-1) / (1 + (t/scal)^shap))
+  # h(t)= (shape/scale) * exp(t/scale)
+  h <- unname((shap/scal) * exp(t / scal))
 
   return(h)
 }
@@ -25,7 +25,7 @@ hazard_loglogistic <- function(t, param){
 #.............................................................................#
 
 # defaults
-hazard_loglogistic_defaults<- function(data, terminal_formula, recurrent_formula,
+hazard_Gompertz_defaults<- function(data, terminal_formula, recurrent_formula,
                                        OBSL,  rec_timescale, eventtype){
 
   #Initialize defaults
@@ -35,8 +35,8 @@ hazard_loglogistic_defaults<- function(data, terminal_formula, recurrent_formula
 
     #Run parametric log-logistic model for the terminal event
     #We update the formula to always include an intercept (scale parameter)
-    mod<-survival::survreg(formula = update.formula(terminal_formula, ~ . +1 ),
-                           data = data, dist = "loglogistic")
+    mod<-eha::phreg(formula = update.formula(terminal_formula, ~ . +1 ),
+                    data = data, dist = 'gompertz', param='rate')
 
   } else if (eventtype == "recurrent") {
 
@@ -46,18 +46,23 @@ hazard_loglogistic_defaults<- function(data, terminal_formula, recurrent_formula
     data_mod[,'t.mod']<-modify_timescale(OBSL, rec_timescale)
 
     #Update the formula to have t.mod as dependent variable (and intercept)
-    mod<-survival::survreg(formula = update.formula(recurrent_formula, t.mod ~ . +1),
-                           data = data_mod, dist = "loglogistic")
+    mod<-eha::phreg(formula = update.formula(recurrent_formula, t.mod ~ . +1),
+                    data = data_mod, dist = 'gompertz', param='rate')
   }
 
   #Get the defaults
-  #Cox coefficients
-  # Proper scaling as Kalbfleisch and Prentice (p. 37)
-  defs$beta <- - unname(mod$coefficients[-1]) / mod$scale
+  len_fit <- length(mod$coefficients)
+
+  #Cox coefficients (hazard parameters are at end)
+  defs$beta <- unname(mod$coefficients[-c(len_fit - 1, len_fit)])
 
   # Scale and shape
-  # Note that K&P's lambda is the inverse of our scale
-  defs$a <- unname(c( exp(mod$coefficients[1]), (mod$scale)^(-1) ))
+  # The fitted hazard is h(t) = level * exp(rate * t) and log(level) is reported
+  scal <- 1 / mod$coefficients['rate']
+  defs$a <- unname(c(
+    scal,
+    scal * exp(mod$coefficients['log(level)'])
+  ))
 
   return(defs)
 }
@@ -66,7 +71,7 @@ hazard_loglogistic_defaults<- function(data, terminal_formula, recurrent_formula
 #.............................................................................#
 
 # gradient of hazard
-hazard_loglogistic_gradient <- function(t, param){
+hazard_Gompertz_gradient <- function(t, param){
 
   # Check time larger than 0
   if (any(t <= 0)){
@@ -79,18 +84,17 @@ hazard_loglogistic_gradient <- function(t, param){
   #Shape parameter
   shap<-param['shape']
 
-  # Denominator in derivative
-  den <-scal^shap + t^shap
+  # time scaled
+  t_scal <- t / scal
 
   #Derivative wrt scale
   dh_scal<-unname(
-    - shap^2 * (t * scal)^(shap - 1) / den^2
+    - (shap / scal^2) * exp(t_scal) * (t_scal + 1)
   )
 
   #Derivative wrt shape
   dh_shap<- unname(
-    t^(shap - 1) / den +
-      shap * scal * (t * scal)^(shap - 1) * (log(t) - log(scal)) / den^2
+    exp(t_scal) / scal
   )
 
   #Return a length(t) x num_param (2) matrix with the gradient at each t
@@ -101,7 +105,7 @@ hazard_loglogistic_gradient <- function(t, param){
 #.............................................................................#
 
 # Names of the parameters
-hazard_loglogistic_names<- function(){
+hazard_Gompertz_names<- function(){
   return(c('scale','shape'))
 }
 
@@ -109,7 +113,7 @@ hazard_loglogistic_names<- function(){
 #.............................................................................#
 
 # Positivity constraint on the parameters
-hazard_loglogistic_posit<- function(){
+hazard_Gompertz_posit<- function(){
   return(c(TRUE, TRUE))
 }
 
@@ -117,7 +121,7 @@ hazard_loglogistic_posit<- function(){
 #.............................................................................#
 
 # survival
-surv_loglogistic <- function(t, param){
+surv_Gompertz <- function(t, param){
 
   #Scale parameter
   scal<-param['scale']
@@ -125,9 +129,9 @@ surv_loglogistic <- function(t, param){
   #Shape parameter
   shap<-param['shape']
 
-  #Loglogistic survival function: S(t)=1 / (1 + (t/scale)^shape)
+  #Loglogistic survival function: S(t)=exp ( -shape * (exp(t/scale) - 1))
   S <-unname(
-    1 / (1 + (t/scal)^shap)
+    exp( - shap * (exp(t / scal) - 1))
   )
 
   return(S)
@@ -137,7 +141,7 @@ surv_loglogistic <- function(t, param){
 #.............................................................................#
 
 # gradient of survival
-surv_loglogistic_gradient <- function(t, param){
+surv_Gompertz_gradient <- function(t, param){
 
   #Scale parameter
   scal<-param['scale']
@@ -146,18 +150,20 @@ surv_loglogistic_gradient <- function(t, param){
   shap<-param['shape']
 
   # Survival function
-  surv <- surv_loglogistic(t, param)
+  surv <- surv_Gompertz(t, param)
 
   # Scaled parameter
   t_scal <- t / scal
 
   #Derivative wrt scale
   dh_scal<-unname(
-    surv^2 * shap * t_scal^shap / scal
+    surv * (shap / scal) * t_scal * exp(t_scal)
   )
 
   #Derivative wrt shape
-  dh_shap<- unname( - (t_scal)^shap * log(t/scal) * surv^2 )
+  dh_shap<- unname(
+    - surv *(exp(t_scal) - 1)
+  )
 
   #Return a length(t) x num_param (2) matrix with the gradient at each t
   return(matrix(c(dh_scal, dh_shap), ncol = length(param)))

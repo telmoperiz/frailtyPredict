@@ -124,7 +124,7 @@ shared_frailty_fit <- function(data, terminal_formula, recurrent_formula, obsvar
   }
 
   # Supported hazard models
-  hazard_supp <- c('Weibull', 'loglogistic')
+  hazard_supp <- c('Weibull', 'loglogistic', 'Gompertz')
   if (!( (ter_hazard %in% hazard_supp)  & (rec_hazard %in% hazard_supp) )){
     stop(paste('Invalid hazards. Supported:', paste(hazard_supp, collapse = ', ')))
   }
