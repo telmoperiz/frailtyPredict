@@ -43,6 +43,15 @@
 #' \deqn{h_0(t) = \frac{b}{a}\frac{(t/a)^{b-1}}{1 + (t/a)^b},}
 #' where \eqn{a} is a scale parameter and \eqn{b} is a shape parameter.
 #'
+#' When `ter_hazard = "Gompertz"` or `rec_hazard = "Gompertz"`, the
+#' corresponding baseline hazards are
+#' \deqn{h_0(t) = Le^{rt},}
+#' where \eqn{L} is the level parameter and \eqn{r} is the rate parameter.
+#' To compare this with a shape-scale parametrization
+#' \deqn{h_0(t) = \frac{b}{a}e^{\text{sign}(r)t/a},}
+#' where \eqn{a} is a scale parameter and \eqn{b} is a shape parameter,
+#' one must set \eqn{a = 1/|r|} and \eqn{b=L/|r|}.
+#'
 #' For `frailty = "gamma"` the distribution of \eqn{u_i} is
 #' \deqn{\frac{u^{1/\sigma-1}\exp(-u/\sigma)}{\sigma^{1/\sigma}\Gamma(1/\sigma)},}
 #' where \eqn{\sigma = Var(u_i)}. Also, \eqn{E[u_i]=1}.
@@ -61,9 +70,9 @@
 #' @param recurrent_formula Formula for the recurrent event.
 #' @param obsvar Varible indicating observation units (individuals)
 #' @param ter_hazard Parametric specification of the baseline hazard for the
-#' terminal event. Supports: `"Weibull"`, `"loglogistic"`.
+#' terminal event. Supports: `"Weibull"`, `"loglogistic"`, `"Gompertz"`.
 #' @param rec_hazard Parametric specification of the baseline hazard for the
-#' recurrent event. Supports: `"Weibull"`, `"loglogistic"`.
+#' recurrent event. Supports: `"Weibull"`, `"loglogistic"`, `"Gompertz"`.
 #' @param rec_timescale Model specification for the hazard of the recurrent event.
 #' Supports: `"Poisson"`, `"renewal"`, and `"piecewise-renewal"`.
 #' @param frailty Distribution of the frailty variable. Supports: `"gamma"`.
