@@ -90,7 +90,7 @@
 #' Default is `"gamma"` which samples from [stats::dgamma()].
 #' * `$param` = list with parameters to pass to the R sampler. Default is `list(1,1)`.
 #' @param anal.grad Whether to use the analytic gradient = `TRUE` (default) or `FALSE`.
-#' @param BHHH.hessian Wheter to use the Berndt-Hall-Hall-Haussman algorithm, which
+#' @param BHHH.hessian Whether to use the Berndt-Hall-Hall-Haussman algorithm, which
 #' approximates the Hessian of the loglikelihood using scores. It can be `TRUE`,
 #' use BHHH Hessian in optimization, or `FALSE` (default), numerically compute the
 #' Hessian.
@@ -459,7 +459,9 @@ shared_frailty_fit <- function(data, terminal_formula, recurrent_formula, obsvar
                     )
 
   # Compute asymptotic variance
-  out$varmat <- asymptvar(out)
+  try(
+    out$varmat <- asymptvar(out)
+  )
 
   return(out)
 }
