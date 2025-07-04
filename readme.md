@@ -31,5 +31,5 @@ The prediction interface is provided by the `predict` and `predict_plot` methods
     * fun_pdf_gamma.R
 * Finish documentation: add **example** in functions with the 'examples' tag.
 * Finish documentation of `dist_relevance_test."SharedModel` in SharedModel_methods.R.
-
 * Implement test for relevance of other baseline hazards: loglogistic, Gompertz.
+* Change `BHHH` argument in print/toLatex/param_tables to match what it does: use the locally store asymptotic varianza or compute it. Posible name `compute_vatmat`.
